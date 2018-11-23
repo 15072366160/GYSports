@@ -7,118 +7,122 @@
 //
 
 #import "MainVC.h"
+#import "MainCell.h"
 
-#import "WechatAuthSDK.h"
-#import "WXApi.h"
-#import "WXApiObject.h"
+#import "MainHeaderView.h"
+#import "MaCreateSportsVC.h"
 
-#import "GYTableViewController.h"
+#import "MaSportModel.h"
 
-@interface MainVC ()
+#import "MaSportVC.h"
 
+@interface MainVC ()<UITableViewDataSource,UITableViewDelegate>
+
+@property (nonatomic,strong) UITableView *tableView;
+
+@property (nonatomic, strong) NSMutableArray *list;
 
 @end
 
 @implementation MainVC
 
+- (NSMutableArray *)list{
+    if (_list == nil) {
+        _list = [NSMutableArray array];
+    }
+    return _list;
+}
+
+- (UITableView *)tableView{
+    if (_tableView == nil) {
+        _tableView = [[UITableView alloc] initWithFrame:self.view.bounds style:UITableViewStylePlain];
+        _tableView.delegate = self;
+        _tableView.dataSource = self;
+        _tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+        _tableView.backgroundColor = [UIColor clearColor];
+    }
+    return _tableView;
+}
+
+- (void)viewWillAppear:(BOOL)animated{
+    [super viewWillAppear:animated];
+    
+    [self.navigationController setNavigationBarHidden:true animated:animated];
+    
+    [self reloadData];
+}
+
+- (void)viewWillDisappear:(BOOL)animated{
+    [super viewWillDisappear:animated];
+    
+    [self.navigationController setNavigationBarHidden:false animated:animated];
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    self.view.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"BK"]];
-    
-    UIImage *img = [UIImage imageGradualOblique:HEX_COLOR(@"ff9966") endColor:HEX_COLOR(@"ff5e62") size:CGSizeMake(SCREEN_WIDTH, [GYScreen shared].navBarH)];
-    [self.navigationController.navigationBar setBackgroundImage:img forBarMetrics:UIBarMetricsDefault];
-    self.navigationController.navigationBar.barStyle = UIBarStyleBlack;
-    
-    UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
-    [btn setTitle:@"登录" forState:UIControlStateNormal];
-    UIImage *image = [UIImage imageGradualOblique:HEX_COLOR(@"ff9966") endColor:HEX_COLOR(@"ff5e62") size:CGSizeMake(50, 200)];
-    [btn setBackgroundImage:image forState:UIControlStateNormal];
-    [btn addTarget:self action:@selector(test) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:btn];
-    [btn mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.centerX.mas_equalTo(self.view.mas_centerX);
-        make.centerY.mas_equalTo(self.view.mas_centerY);
-        make.width.mas_equalTo(200);
-        make.height.mas_equalTo(50);
+    UIImageView *bkView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"BK"]];
+        bkView.contentMode = UIViewContentModeScaleAspectFill;
+    [self.view addSubview:bkView];
+    [bkView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.edges.mas_equalTo(0);
     }];
-
-    [GYNOTI addObserver:self selector:@selector(checkLogin) name:NOTI_WX_LOGIN object:nil];
+    
+    [self.view addSubview:self.tableView];
+    [self.tableView registerWithNibName:MainCellID];
+    
+    MainHeaderView *headerView = [[NSBundle mainBundle] loadNibNamed:@"MainHeaderView" owner:nil options:nil].firstObject;
+    self.tableView.tableHeaderView = headerView;
+    [headerView.btn addTarget:self action:@selector(addSportKindsAction) forControlEvents:UIControlEventTouchUpInside];
 }
 
-- (void)test{
-    
-    GYTableViewController *vc = [[GYTableViewController alloc] initWithStyle:UITableViewStylePlain];
-    vc.hidesBottomBarWhenPushed = true;
+- (void)addSportKindsAction{
+    MaCreateSportsVC *vc = [[MaCreateSportsVC alloc] initWithNibName:@"MaCreateSportsVC" bundle:nil];
     [self push:vc];
 }
 
-- (void)dealloc{
-    [GYNOTI removeObserver:self name:NOTI_WX_LOGIN object:nil];
+- (void)reloadData{
+    NSArray *arr = [FMDBManager selectedData:SPORTKINDS fieldKyes:@[SPORTID,SPORTNAME,SPORTICON,SPORTCONTEXT,SPORTCOUNT,SPORTTIME,SPORTDURATION]];
+    self.list = [MaSportModel mj_objectArrayWithKeyValuesArray:arr];
+    [self.tableView reloadData];
 }
 
-- (void)checkLogin{
-    NSString *accessToken = [NSUserDefaults objectForKey:WX_ACCESS_TOKEN];
-    NSString *openID = [NSUserDefaults objectForKey:WX_OPEN_ID];
-    
-    if (accessToken.length > 0 && openID.length > 0) {
-        NSString *refreshToken = [NSUserDefaults objectForKey:WX_REFRESH_TOKEN];
-        NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-        [dict addValue:AppID key:@"appid"];
-        [dict addValue:@"refresh_token" key:@"grant_type"];
-        [dict addValue:refreshToken key:@"refresh_token"];
-        [GYNetworking requestMode:NetModeGET header:nil url:@"https://api.weixin.qq.com/sns/oauth2/refresh_token" params:dict success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable data) {
-    
-            NSDictionary *dict = (NSDictionary *)data;
-            NSString *reAccessToken = dict[WX_ACCESS_TOKEN];
-            // 如果reAccessToken为空,说明reAccessToken也过期了,反之则没有过期
-            if (reAccessToken) {
-                // 更新access_token、refresh_token、open_id
-                [NSUserDefaults addValue:dict[WX_ACCESS_TOKEN] key:WX_ACCESS_TOKEN];
-                [NSUserDefaults addValue:dict[WX_OPEN_ID] key:WX_OPEN_ID];
-                [NSUserDefaults addValue:dict[WX_REFRESH_TOKEN] key:WX_REFRESH_TOKEN];
-                
-                [self getWXUserInfo];
-            }else {
-                [self login];
-            }
-        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-            [GYHUD _showErrorWithStatus:@"网络未连接，请检查网络！"];
-        }];
-    }else{
-        [self login];
-    }
+#pragma mark -- UITableViewDataSource
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+    return self.list.count;
 }
 
-- (void)login{
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
     
-    if ([WXApi isWXAppInstalled] == false) {
-        [UIAlertController alert:@"该设备未安装微信，是否前往App Store安装微信？" sure:^(UIAlertAction *action) {
-            NSURL *url = [NSURL URLWithString:@"itms-apps://itunes.apple.com/cn/app/%E5%BE%AE%E4%BF%A1/id414478124?mt=8"];
-            [[UIApplication sharedApplication] openURL:url];
-        } canle:nil];
-        return;
-    }
-    //构造SendAuthReq结构体
-    SendAuthReq* req = [[SendAuthReq alloc] init];
-    req.scope = @"snsapi_userinfo";
-    req.state = @"123";
-    //第三方向微信终端发送一个SendAuthReq消息结构
-    [WXApi sendReq:req];
+    MainCell *cell = [tableView dequeueReusableCellWithIdentifier:MainCellID forIndexPath:indexPath];
+    cell.model = self.list[indexPath.row];
+    return cell;
 }
 
-// 获取用户个人信息（UnionID机制）
-- (void)getWXUserInfo {
+#pragma mark -- UITableViewDelegate
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
+    return 130;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
     
-    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-    [dict addValue:[NSUserDefaults objectForKey:WX_ACCESS_TOKEN] key:WX_ACCESS_TOKEN];
-    [dict addValue:[NSUserDefaults objectForKey:WX_OPEN_ID] key:WX_OPEN_ID];
-    [GYNetworking requestMode:NetModeGET header:nil url:@"https://api.weixin.qq.com/sns/userinfo" params:dict success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable data) {
+    MainCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+    
+    MaSportModel *model;
+    if (cell.starBtn.selected == true) {
         
-        GYLog(@"info:%@",data);
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        [GYHUD _showErrorWithStatus:@"网络未连接，请检查网络！"];
-    }];
+        [cell starBtnAction:cell.starBtn];
+        
+        model = self.list[indexPath.row];
+        
+        // 更新时长
+        [FMDBManager updateData:SPORTKINDS filedDict:@{SPORTTIME:@([[NSDate date] timeIntervalSince1970]),SPORTDURATION:@(model.SportDuration)} key:SPORTID value:model.sid];
+    }
+    
+    MaSportVC *vc = [[MaSportVC alloc] initWithNibName:@"MaSportVC" bundle:nil];
+    vc.model = model;
+    [self push:vc];
 }
+
 
 @end

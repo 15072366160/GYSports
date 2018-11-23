@@ -26,5 +26,19 @@ static NSString  *const BackIMG_Gray            = @"BackIMG_Gray";
 // NOTI_WX_LOGIN
 static NSString  *const NOTI_WX_LOGIN           = @"NOTI_WX_LOGIN";
 
+// FMDB 数据库
+static NSString  *const SPORTKINDS              = @"SportKinds";
+static NSString  *const SPORTNUMBER             = @"SportNumner";
+
+static NSString  *const SPORTID                 = @"id";
+static NSString  *const SPORTNAME               = @"SportName";
+static NSString  *const SPORTICON               = @"SportIcon";
+static NSString  *const SPORTCONTEXT            = @"SportContext";
+
+static NSString  *const SPORTTYPE               = @"SportType";
+static NSString  *const SPORTDURATION           = @"SportDuration";
+static NSString  *const SPORTCOUNT              = @"SportCount";
+static NSString  *const SPORTTIME               = @"SportTime";
+static NSString  *const SPORTDATE               = @"SportDate";
 
 #endif /* HeaderConst_h */

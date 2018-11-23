@@ -9,7 +9,7 @@ pod 'SDWebImage', '~> 4.4.2'
 pod 'SVProgressHUD', '~> 2.2.5'
 pod 'Bugly', '~> 2.5.0'
 pod 'FMDB', '~> 2.7.2'
-pod 'JKCategories', '~> 1.7'
+#pod 'JKCategories', '~> 1.7'
 pod 'Colours', '~> 5.13.0'
 pod 'YYText', '~> 1.0.7'
 pod 'Popover.OC', '~> 2.2'
@@ -25,8 +25,7 @@ pod 'KSPhotoBrowser', '~> 0.2.3'
 pod 'JYHHHorizontalPagingView', '~> 1.2.1'
 pod 'ZFPlayer', '~> 3.1.6'
 pod 'lottie-ios', '~> 2.5.0'
-pod 'WechatOpenSDK', '~> 1.8.2'
-#pod 'Charts', '~> 3.1.1'
+pod 'Charts', '~> 3.1.1'
 
 end
 

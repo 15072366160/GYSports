@@ -2,6 +2,29 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>AppIconList</key>
+	<array>
+		<string>beiwanglu</string>
+		<string>bofangqi</string>
+		<string>dianhua</string>
+		<string>ditu</string>
+		<string>jisuanqi</string>
+		<string>lianxiren</string>
+		<string>qianbao</string>
+		<string>rili</string>
+		<string>shezhi</string>
+		<string>shizhong</string>
+		<string>tianqi</string>
+		<string>wenjianjia</string>
+		<string>xiangji</string>
+		<string>xinxi</string>
+		<string>yingyongshangdian</string>
+		<string>youxi</string>
+		<string>zhaoming</string>
+		<string>zhinanzhen</string>
+		<string>zhuti</string>
+		<string>zhuye</string>
+	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>zh_CN</string>
 	<key>CFBundleExecutable</key>
